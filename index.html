@@ -1057,3 +1057,43 @@
       syncCurrentTask();
       renderHistory();
       document.getElementById('removeOverlay').classList.remove('active');
+      pendingRemove = null;
+    } catch (err) { showError(err); }
+  }
+
+  /* ── Helpers ── */
+  function today() {
+    return new Date().toISOString().split('T')[0];
+  }
+
+  // Antal hele dage siden en dato (YYYY-MM-DD), målt fra midnat til midnat
+  function daysSince(dateStr) {
+    if (!dateStr) return Infinity;
+    const [y, m, d] = dateStr.split('-').map(Number);
+    const then = new Date(y, m - 1, d);
+    const now = new Date();
+    const today0 = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    return Math.floor((today0 - then) / 86400000);
+  }
+
+  function formatDate(d) {
+    if (!d) return '';
+    const [y, m, day] = d.split('-');
+    return `${day}/${m}/${y}`;
+  }
+
+  /* ── Init ── */
+  (async function init() {
+    const list = document.getElementById('taskList');
+    list.innerHTML = '<div class="history-empty">Henter opgaver…</div>';
+    try {
+      await refresh();
+    } catch (err) {
+      list.innerHTML = '<div class="history-empty" style="line-height:1.6;">' +
+        'Kunne ikke hente opgaver fra serveren.<br>' +
+        '<span style="font-size:12px;">' + escHtml(err.message) + '</span></div>';
+    }
+  })();
+</script>
+</body>
+</html>
