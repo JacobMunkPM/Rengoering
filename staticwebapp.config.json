@@ -1,0 +1,15 @@
+{
+  "navigationFallback": {
+    "rewrite": "/cleaning-tasks_5.html",
+    "exclude": ["/api/*", "*.{css,js,png,svg,ico,jpg,woff,woff2}"]
+  },
+  "routes": [
+    { "route": "/", "rewrite": "/cleaning-tasks_5.html" }
+  ],
+  "responseOverrides": {
+    "404": { "rewrite": "/cleaning-tasks_5.html" }
+  },
+  "platform": {
+    "apiRuntime": "node:18"
+  }
+}

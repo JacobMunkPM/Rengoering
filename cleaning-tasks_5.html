@@ -1,0 +1,1058 @@
+<!DOCTYPE html>
+<html lang="da">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Kontor Rengøringsopgaver</title>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Serif+Display&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #f5f4f0;
+      --surface: #ffffff;
+      --border: #e2e0d8;
+      --text: #1a1a18;
+      --text-muted: #7a7a72;
+      --accent: #1d3a5f;
+      --accent-light: #e8eef5;
+      --accent-hover: #14294a;
+      --success: #2d6a4f;
+      --success-bg: #eaf4ef;
+      --danger: #8b2020;
+      --danger-bg: #fdf0f0;
+      --warning: #c2680f;
+      --radius: 8px;
+      --shadow: 0 1px 3px rgba(0,0,0,0.06), 0 4px 16px rgba(0,0,0,0.06);
+      --transition: 0.18s ease;
+    }
+
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* ── Header ── */
+    header {
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      height: 64px;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .header-inner {
+      max-width: 920px;
+      margin: 0 auto;
+      padding: 0 16px;
+      height: 100%;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .logo-placeholder {
+      height: 36px;
+      display: flex;
+      align-items: center;
+      flex-shrink: 0;
+    }
+
+    .logo-placeholder img {
+      height: 100%;
+      width: auto;
+      display: block;
+    }
+
+    .header-title {
+      font-family: 'DM Serif Display', serif;
+      font-size: 18px;
+      color: var(--accent);
+      margin-left: auto;
+    }
+
+    /* ── Main layout ── */
+    main {
+      max-width: 920px;
+      margin: 0 auto;
+      padding: 32px 16px 80px;
+    }
+
+    .page-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 24px;
+      margin-bottom: 28px;
+    }
+
+    .page-head .logo-placeholder {
+      height: 40px;
+    }
+
+    .page-head-text {
+      text-align: right;
+      min-width: 0;
+    }
+
+    .page-title {
+      font-family: 'DM Serif Display', serif;
+      font-size: 28px;
+      color: var(--accent);
+      margin-bottom: 6px;
+    }
+
+    .page-subtitle {
+      font-size: 14px;
+      color: var(--text-muted);
+      margin-bottom: 0;
+    }
+
+    /* ── Task list ── */
+    .task-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .task-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 16px 20px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      transition: border-color var(--transition), box-shadow var(--transition), transform var(--transition);
+    }
+
+    .task-card:hover {
+      border-color: var(--accent);
+      box-shadow: var(--shadow);
+      transform: translateY(-1px);
+    }
+
+    .task-card:active { transform: translateY(0); }
+
+    .task-name {
+      font-weight: 500;
+      font-size: 15px;
+      flex: 1;
+      min-width: 0;
+    }
+
+    .task-meta {
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 10px;
+      flex: 1;
+    }
+
+    .task-last-done {
+      font-size: 13px;
+      color: var(--text-muted);
+      flex: 1;
+      text-align: center;
+    }
+
+    .task-last-done span {
+      font-weight: 500;
+      color: var(--text);
+    }
+
+    .task-last-done span.overdue {
+      color: var(--warning);
+      font-weight: 600;
+    }
+
+    .completion-badge {
+      font-size: 12px;
+      color: var(--text-muted);
+      background: var(--bg);
+      padding: 3px 10px;
+      border-radius: 20px;
+      border: 1px solid var(--border);
+      white-space: nowrap;
+    }
+
+    .completion-badge.has-completions {
+      background: var(--success-bg);
+      color: var(--success);
+      border-color: #c3e6d4;
+    }
+
+    .arrow {
+      color: var(--text-muted);
+      font-size: 18px;
+      line-height: 1;
+    }
+
+    /* ── Overlay / Modal ── */
+    .overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(10,10,8,0.45);
+      z-index: 200;
+      animation: fadeIn 0.15s ease;
+    }
+
+    .overlay.active { display: flex; align-items: flex-end; justify-content: center; }
+
+    @media (min-width: 560px) {
+      .overlay.active { align-items: center; }
+    }
+
+    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+    @keyframes slideUp { from { transform: translateY(30px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+
+    .modal {
+      background: var(--surface);
+      border-radius: 12px 12px 0 0;
+      width: 100%;
+      max-width: 560px;
+      max-height: 92vh;
+      overflow-y: auto;
+      padding: 28px 24px 40px;
+      animation: slideUp 0.2s ease;
+    }
+
+    @media (min-width: 560px) {
+      .modal { border-radius: 12px; max-height: 85vh; }
+    }
+
+    .modal-header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+
+    .modal-title {
+      font-family: 'DM Serif Display', serif;
+      font-size: 22px;
+      line-height: 1.2;
+    }
+
+    .modal-close {
+      background: none;
+      border: none;
+      cursor: pointer;
+      color: var(--text-muted);
+      font-size: 22px;
+      line-height: 1;
+      padding: 4px;
+      flex-shrink: 0;
+      border-radius: 4px;
+      transition: color var(--transition);
+    }
+
+    .modal-close:hover { color: var(--text); }
+
+    /* ── Form ── */
+    .form-section {
+      background: var(--accent-light);
+      border: 1px solid #cdd9ea;
+      border-radius: var(--radius);
+      padding: 20px;
+      margin-bottom: 28px;
+    }
+
+    .form-section-title {
+      font-size: 12px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--accent);
+      margin-bottom: 16px;
+    }
+
+    .form-group {
+      margin-bottom: 14px;
+    }
+
+    .form-group:last-child { margin-bottom: 0; }
+
+    label {
+      display: block;
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--text-muted);
+      margin-bottom: 6px;
+    }
+
+    .name-input {
+      width: 100%;
+      padding: 10px 14px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      font-family: inherit;
+      font-size: 15px;
+      background: var(--surface);
+      color: var(--text);
+      outline: none;
+      transition: border-color var(--transition);
+    }
+
+    .name-input:focus { border-color: var(--accent); }
+
+    input[type="date"] {
+      width: 100%;
+      padding: 10px 14px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      font-family: inherit;
+      font-size: 15px;
+      background: var(--surface);
+      color: var(--text);
+      outline: none;
+      transition: border-color var(--transition);
+      -webkit-appearance: none;
+    }
+
+    input[type="date"]:focus { border-color: var(--accent); }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 11px 22px;
+      border-radius: var(--radius);
+      font-family: inherit;
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      border: none;
+      transition: background var(--transition), transform var(--transition);
+    }
+
+    .btn:active { transform: scale(0.98); }
+
+    .btn-primary {
+      background: var(--accent);
+      color: #fff;
+      width: 100%;
+      margin-top: 4px;
+    }
+
+    .btn-primary:hover { background: var(--accent-hover); }
+
+    .btn-secondary {
+      background: var(--surface);
+      color: var(--text);
+      border: 1px solid var(--border);
+    }
+
+    .btn-secondary:hover { background: var(--bg); }
+
+    .btn-danger {
+      background: var(--danger-bg);
+      color: var(--danger);
+      border: 1px solid #e8c0c0;
+      font-size: 13px;
+      padding: 6px 12px;
+    }
+
+    .btn-confirm-danger {
+      background: var(--danger);
+      color: #fff;
+    }
+
+    .btn-confirm-danger:hover { background: #6f1919; }
+
+    /* ── History ── */
+    .history-title {
+      font-size: 12px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--text-muted);
+      margin-bottom: 12px;
+    }
+
+    .history-empty {
+      text-align: center;
+      color: var(--text-muted);
+      font-size: 14px;
+      padding: 24px 0;
+      border: 1px dashed var(--border);
+      border-radius: var(--radius);
+    }
+
+    .history-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .history-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 12px 14px;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+    }
+
+    .history-info { flex: 1; min-width: 0; }
+
+    .history-person {
+      font-weight: 500;
+      font-size: 14px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .history-date {
+      font-size: 12px;
+      color: var(--text-muted);
+      margin-top: 2px;
+    }
+
+    /* ── Confirm modal ── */
+    .confirm-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(10,10,8,0.55);
+      z-index: 400;
+      align-items: center;
+      justify-content: center;
+      animation: fadeIn 0.15s ease;
+    }
+
+    .confirm-overlay.active { display: flex; }
+
+    .confirm-box {
+      background: var(--surface);
+      border-radius: 12px;
+      padding: 28px 28px 24px;
+      max-width: 360px;
+      width: calc(100% - 32px);
+      animation: slideUp 0.18s ease;
+    }
+
+    .confirm-title {
+      font-family: 'DM Serif Display', serif;
+      font-size: 20px;
+      margin-bottom: 10px;
+    }
+
+    .confirm-detail {
+      font-size: 14px;
+      color: var(--text-muted);
+      margin-bottom: 6px;
+    }
+
+    .confirm-detail strong { color: var(--text); }
+
+    .confirm-actions {
+      display: flex;
+      gap: 10px;
+      margin-top: 22px;
+    }
+
+    .confirm-actions .btn { flex: 1; }
+
+    /* ── Toolbar (søg + ny opgave) ── */
+    .toolbar {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+    }
+
+    .search-input {
+      flex: 1;
+      min-width: 180px;
+      padding: 10px 14px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      font-family: inherit;
+      font-size: 15px;
+      background: var(--surface);
+      color: var(--text);
+      outline: none;
+      transition: border-color var(--transition);
+    }
+
+    .search-input:focus { border-color: var(--accent); }
+
+    .toolbar-btn {
+      width: auto;
+      white-space: nowrap;
+      flex-shrink: 0;
+      font-family: 'DM Serif Display', serif;
+      font-size: 18px;
+    }
+
+    /* ── Rediger-titel ── */
+    .modal-title-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex: 1;
+      min-width: 0;
+    }
+
+    .icon-btn {
+      background: none;
+      border: none;
+      cursor: pointer;
+      color: var(--text-muted);
+      padding: 4px;
+      border-radius: 6px;
+      display: inline-flex;
+      align-items: center;
+      transition: color var(--transition), background var(--transition);
+      flex-shrink: 0;
+    }
+
+    .icon-btn:hover { color: var(--accent); background: var(--accent-light); }
+
+    .icon-btn svg { width: 18px; height: 18px; display: block; }
+
+    .edit-title-input {
+      flex: 1;
+      min-width: 0;
+      padding: 8px 12px;
+      border: 1px solid var(--accent);
+      border-radius: var(--radius);
+      font-family: 'DM Serif Display', serif;
+      font-size: 20px;
+      background: var(--surface);
+      color: var(--text);
+      outline: none;
+    }
+
+    /* ── Slet opgave ── */
+    .form-section-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+
+    .form-section-head .form-section-title { margin-bottom: 0; }
+
+    .delete-task-btn {
+      cursor: pointer;
+      flex-shrink: 0;
+    }
+
+    .delete-task-btn:hover { background: #f7dede; }
+  </style>
+</head>
+<body>
+
+<main>
+  <div class="page-head">
+  <div class="logo-placeholder"><img src="data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiPz4KPHN2ZyBpZD0iTGF5ZXJfMSIgZGF0YS1uYW1lPSJMYXllciAxIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAzODguNyA3Mi41Ij4KICA8ZGVmcz4KICAgIDxzdHlsZT4KICAgICAgLmNscy0xIHsKICAgICAgICBmaWxsOiAjMmYzODQzOwogICAgICB9CiAgICA8L3N0eWxlPgogIDwvZGVmcz4KICA8cGF0aCBjbGFzcz0iY2xzLTEiIGQ9Ik05My4zLDIwYy0xNC42LDAtMjYuMSwxMi4yLTI2LjYsMjYuNS01LjksMTIuMi0xOS42LDIzLjUtMzIuNywyMUMyLjUsNjIuNSwyLjIsMywzMC43LDEuN2MxNC40LDAsMTkuNCwxMS4yLDIwLDIyLjguMSwxLjQsMSwyLjEsMS44LDIsMy4zLS41LDUuOC0zLjMsNi4xLTYuNi4xLTIuNS0uNS01LjEtMS43LTcuM0M1Mi44LDQsNDMuMSwwLDMzLjcsMCwxNC42LDAsMCwxNS43LDAsMzUuNWMwLDE4LjUsMTMuNiwzNywzMi40LDM3LDE0LDAsMjguMi0xMC45LDM0LjMtMjMuNy43LDEzLjIsMTEuNywyMy42LDI0LjksMjMuNiwzMy41LS43LDM3LTUxLjQsMS43LTUyLjRaTTEwOS42LDQ3LjNjLS4yLDkuNS0zLjQsMjMuOC0xNS44LDIzLjgtMjIuNC44LTI1LjMtNDktMi41LTQ5LjksMTMuNCwwLDE4LjYsMTUuMSwxOC4zLDI2LjFoMFoiLz4KICA8cGF0aCBjbGFzcz0iY2xzLTEiIGQ9Ik0yNjUuOSwxMi41YzYtLjEsNi04LjksMC05LjEtNiwuMi02LDguOSwwLDkuMSIvPgogIDxwYXRoIGNsYXNzPSJjbHMtMSIgZD0iTTI3MC43LDY4LjFWMjEuMWgtMTQuNHYuOWMyLjMuMyw2LC41LDYsMi45djQzLjJjMCwyLjQtMy43LDIuNi02LDIuOXYuOWgyMC40di0uOWMtMS45LS4zLTYtLjUtNi0yLjkiLz4KICA8cGF0aCBjbGFzcz0iY2xzLTEiIGQ9Ik0zNDguMiw0M2MwLTguNiwyLjctMjEuOSwxMy45LTIxLjksNy44LDAsMTIuNCw3LjUsMTIuNCwxNC41LDAsMi43LTMuMSwyLjctNS40LDIuNy0xNCwwLTE4LDQuNC0yMC4yLDEyLS40LTIuNC0uNi00LjgtLjctNy4zTTM4Ny43LDUzLjVjLTkuMiwxOS41LTI4LjksMTkuNS0zNi45LDMuNi0uMy0uNy0uNi0xLjQtLjktMi4yLS4yLS43LS40LTEuNC0uNS0yLjEsMS45LTkuMSw3LjktMTMuNiwyMi0xMi42LDguNSwwLDEwLjctMy40LDEwLjctNi43LDAtOC44LTEwLjQtMTMuNy0xNy45LTEzLjctMTkuNSwwLTMwLjgsMjIuNy0yMS4xLDM4LjktMi42LDQuOC01LjgsOC41LTkuMyw4LjVzLTQuMS0zLjctNC40LTYuNGMtLjMtOS4zLDEtMTguNi0uMi0yNy45LS44LTcuNC00LjMtMTIuNy0xMi4zLTEyLjctOS40LDAtMTkuMywxNi4yLTIxLjIsMjYuMnYtMjUuM2gtMTQuNHYuOWMyLjMuMyw2LC41LDYsMi44djQzLjNjMCwyLjMtMy43LDIuNy02LDIuOXYuOWgyMC40di0uOWMtMS45LS4yLTYtLjYtNi0yLjl2LTE1LjljLjQtNy4yLDktMjcsMTguNS0yNyw0LjcsMCw3LDUuNyw3LDE0LjcsMCwxLjYtLjIsMTQuNy0uMiwxNi4zLDAsMTEuMywzLjksMTUuOSwxMC4xLDE1LjgsNS40LDAsOS45LTUuMiwxMy4yLTExLjQsMSwxLjUsMi4xLDMsMy40LDQuMywxNC4xLDE1LDM0LjgsNS43LDQxLTExbC0xLS40WiIvPgogIDxwYXRoIGNsYXNzPSJjbHMtMSIgZD0iTTIzMS44LDY4LjJjLTguMiwwLTEyLTUuNy0xNS4zLTExLjUtLjItNC4xLjEtOC4xLjctMTIuMiwxLjItOC41LDUuNy0xOS4xLDEzLjktMTkuMiw5LDAsMTIuMyw5LjIsMTIuMywyMS42cy00LDIxLjMtMTEuNiwyMS4zTTIzNC4yLDIwLjVjLTEwLjQsMC0xNS45LDguMS0xNy43LDIwLjRWLjVoLTE0LjR2LjljMi4zLjMsNiwuNiw2LDIuOXY1Mi4zYy0yLjcsNS43LTYuMywxMC42LTEwLjQsMTAuNi01LjktLjEtNC4yLTExLjQtNC42LTE1LjQsMC03LjEuMy0xNC4yLS43LTIxLjEtLjctNS43LTMuNC0xMC4zLTkuNy0xMC4xLTkuNSwwLTE2LjIsMTUuOS0xOC4yLDI1Ljl2LTEuMWMwLTEzLjUuNS0yNC44LTEwLjMtMjQuOC05LjUsMC0xNi4zLDE1LjktMTguMiwyNS45di0yNS40aC0xNC40di45YzIuMy4zLDYsLjUsNiwyLjh2NDMuM2MwLDIuMy0zLjcsMi43LTYsMi45di45aDIwLjR2LS45Yy0xLjktLjItNi0uNi02LTIuOXYtMTYuOWMuOC02LDcuMi0yNiwxNS40LTI2LDUuMywwLDQuNiw4LjEsNC42LDIwdjIzYzAsMi4zLTMuNywyLjctNS45LDIuOXYuOWgyMC4zdi0xYy0xLjktLjItNS45LS42LTUuOS0yLjl2LTE3Yy44LTYsNy4yLTI2LDE1LjQtMjYsMy40LDAsNC4xLDMuNyw0LjQsNi40LjYsNi4zLjEsMTIuNy4yLDE5LC4zLDcuOC0uNywyMS42LDEwLjQsMjEuNCw1LjQsMCw5LjktNS4yLDEzLjItMTEuNHYxMS4zaDguNHYtMTEuMmMxLjUsMiw3LjksMTEuNywxOS40LDExLjcsMjIuMy0uNCwyMS41LTUyLjItMS43LTUxLjgiLz4KPC9zdmc+" alt="Combine logo" /></div>
+    <div class="page-head-text">
+      <h1 class="page-title">Rengøringsopgaver</h1>
+      <p class="page-subtitle">Vælg en opgave for at registrere en udførelse eller se historik.</p>
+    </div>
+  </div>
+
+  <div class="toolbar">
+    <input type="text" id="searchInput" class="search-input" placeholder="Søg efter opgave…" oninput="onSearch(this.value)" autocomplete="off" />
+    <button class="btn btn-primary toolbar-btn" onclick="openNewTask()">+ Ny opgave</button>
+  </div>
+
+  <div class="task-list" id="taskList"></div>
+</main>
+
+<!-- Task detail modal -->
+<div class="overlay" id="taskOverlay">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title-row" id="titleDisplay">
+        <h2 class="modal-title" id="modalTaskName"></h2>
+        <button class="icon-btn" onclick="startEditTitle()" title="Redigér titel" aria-label="Redigér titel">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5z"/></svg>
+        </button>
+      </div>
+      <div class="modal-title-row" id="titleEdit" style="display:none;">
+        <input type="text" id="editTitleInput" class="edit-title-input" />
+        <button class="icon-btn" onclick="saveTitleEdit()" title="Gem" aria-label="Gem" style="color:var(--success);">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
+        </button>
+        <button class="icon-btn" onclick="finishEditTitle()" title="Annullér" aria-label="Annullér">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+        </button>
+      </div>
+      <button class="modal-close" onclick="closeModal()" aria-label="Luk">&#x2715;</button>
+    </div>
+
+    <div class="form-section">
+      <div class="form-section-head">
+        <div class="form-section-title">Registrér udførelse</div>
+        <button class="btn btn-danger delete-task-btn" onclick="askDeleteTask()">Slet opgave</button>
+      </div>
+
+      <div class="form-group">
+        <label for="nameInput">Dit navn</label>
+        <input
+          type="text"
+          id="nameInput"
+          class="name-input"
+          placeholder="Indtast dit navn…"
+          autocomplete="off"
+        />
+      </div>
+
+      <div class="form-group">
+        <label for="completionDate">Dato</label>
+        <input type="date" id="completionDate" />
+      </div>
+
+      <button class="btn btn-primary" onclick="submitCompletion()">Markér som udført</button>
+    </div>
+
+    <div class="history-title">Historik</div>
+    <div id="historyContainer"></div>
+  </div>
+</div>
+
+<!-- New task modal -->
+<div class="overlay" id="newTaskOverlay">
+  <div class="modal" style="max-width:440px;">
+    <div class="modal-header">
+      <h2 class="modal-title">Ny opgave</h2>
+      <button class="modal-close" onclick="closeNewTask()" aria-label="Luk">&#x2715;</button>
+    </div>
+    <div class="form-group">
+      <label for="newTaskInput">Opgavens titel</label>
+      <input type="text" id="newTaskInput" class="name-input" placeholder="F.eks. Tømme opvaskemaskine…" autocomplete="off" />
+    </div>
+    <button class="btn btn-primary" style="margin-top:18px;" onclick="createTask()">Opret opgave</button>
+  </div>
+</div>
+
+<!-- Confirm modal -->
+<div class="confirm-overlay" id="confirmOverlay">
+  <div class="confirm-box">
+    <div class="confirm-title">Bekræft udførelse</div>
+    <div class="confirm-detail">Opgave: <strong id="confirmTask"></strong></div>
+    <div class="confirm-detail">Udført af: <strong id="confirmPerson"></strong></div>
+    <div class="confirm-detail">Dato: <strong id="confirmDate"></strong></div>
+    <div class="confirm-actions">
+      <button class="btn btn-secondary" onclick="cancelConfirm()">Annullér</button>
+      <button class="btn btn-primary" onclick="confirmCompletion()">Bekræft</button>
+    </div>
+  </div>
+</div>
+
+<!-- Delete task modal -->
+<div class="confirm-overlay" id="deleteTaskOverlay">
+  <div class="confirm-box">
+    <div class="confirm-title">Slet opgave</div>
+    <div class="confirm-detail">Opgave: <strong id="deleteTaskName"></strong></div>
+    <div class="confirm-detail">Registreret historik: <strong id="deleteTaskCount"></strong></div>
+    <div class="confirm-detail">Opgaven og dens historik slettes permanent.</div>
+    <div class="confirm-actions">
+      <button class="btn btn-secondary" onclick="cancelDeleteTask()">Annullér</button>
+      <button class="btn btn-confirm-danger" onclick="confirmDeleteTask()">Slet opgave</button>
+    </div>
+  </div>
+</div>
+
+<!-- Remove history entry modal -->
+<div class="confirm-overlay" id="removeOverlay">
+  <div class="confirm-box">
+    <div class="confirm-title">Fjern udførelse</div>
+    <div class="confirm-detail">Opgave: <strong id="removeTask"></strong></div>
+    <div class="confirm-detail">Udført af: <strong id="removePerson"></strong></div>
+    <div class="confirm-detail">Dato: <strong id="removeDate"></strong></div>
+    <div class="confirm-actions">
+      <button class="btn btn-secondary" onclick="cancelRemove()">Annullér</button>
+      <button class="btn btn-confirm-danger" onclick="confirmRemove()">Fjern</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  // Delt webapp: data hentes/gemmes via API'et (/api), så alle kollegaer
+  // ser samme data på tværs af enheder. (Tidligere blev localStorage brugt.)
+  const API = '/api';
+
+  let tasks = [];          // [{ _id, name, completions: [{ _id, person, date, timestamp }] }]
+  let currentTask = null;  // det aktuelle task-objekt (når en modal er åben)
+  let pending = null;      // afventende udførelse før bekræftelse
+  let pendingRemove = null;
+  let searchQuery = '';
+  let currentView = [];
+
+  /* ── API ── */
+  async function apiCall(path, options = {}) {
+    const res = await fetch(API + path, {
+      headers: { 'Content-Type': 'application/json' },
+      ...options
+    });
+    if (!res.ok) {
+      let msg = 'Serverfejl (' + res.status + ')';
+      try { const j = await res.json(); if (j && j.error) msg = j.error; } catch (e) {}
+      throw new Error(msg);
+    }
+    if (res.status === 204) return null;
+    return res.json();
+  }
+
+  // Hent alle opgaver + historik fra serveren og gentegn listen
+  async function refresh() {
+    tasks = await apiCall('/tasks');
+    renderTaskList();
+  }
+
+  // Find den åbne opgave igen i den friske data efter en refresh
+  function syncCurrentTask() {
+    if (!currentTask) return;
+    currentTask = tasks.find(t => t._id === currentTask._id) || null;
+  }
+
+  function showError(err) {
+    console.error(err);
+    alert('Noget gik galt: ' + (err && err.message ? err.message : err) +
+          '\nTjek din internetforbindelse og prøv igen.');
+  }
+
+  /* ── Helpers ── */
+  function escHtml(s) {
+    return String(s).replace(/[&<>"']/g, c =>
+      ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[c]));
+  }
+
+  // Seneste udførelses-DATO (YYYY-MM-DD). Aldrig udført = '' (sorteres først).
+  // Bruger den valgte dato – ikke registreringstidspunktet.
+  function lastDoneDate(task) {
+    const e = task.completions || [];
+    if (!e.length) return '';
+    return e.reduce((max, c) => (c.date > max ? c.date : max), e[0].date);
+  }
+
+  /* ── Task list ── */
+  function renderTaskList() {
+    const list = document.getElementById('taskList');
+
+    // 1) Filtrér efter søgning
+    let view = tasks.slice();
+    if (searchQuery) {
+      const q = searchQuery.toLowerCase();
+      view = view.filter(t => t.name.toLowerCase().includes(q));
+    }
+
+    // 2) Sortér efter sidst udført-dato – ældste først (aldrig udført øverst)
+    view.sort((a, b) => {
+      const da = lastDoneDate(a), db = lastDoneDate(b);
+      return da < db ? -1 : da > db ? 1 : 0;
+    });
+    currentView = view;
+
+    if (!view.length) {
+      list.innerHTML = `<div class="history-empty">${
+        searchQuery ? 'Ingen opgaver matcher søgningen.' : 'Ingen opgaver endnu. Tryk “+ Ny opgave”.'
+      }</div>`;
+      return;
+    }
+
+    list.innerHTML = view.map((task, i) => {
+      const count = (task.completions || []).length;
+      let lastDone;
+      if (count > 0) {
+        const last = lastDoneDate(task);
+        // Orange dato hvis det er mere end 7 dage siden opgaven sidst blev løst
+        const overdue = daysSince(last) > 7;
+        lastDone = `Sidst udført: <span class="${overdue ? 'overdue' : ''}">${formatDate(last)}</span>`;
+      } else {
+        lastDone = `Sidst udført: <span>–</span>`;
+      }
+      const badge = count > 0
+        ? `<span class="completion-badge has-completions">${count} udførelse${count > 1 ? 'r' : ''}</span>`
+        : `<span class="completion-badge">Ingen udførelser</span>`;
+      return `
+        <div class="task-card" data-i="${i}">
+          <span class="task-name">${escHtml(task.name)}</span>
+          <div class="task-last-done">${lastDone}</div>
+          <div class="task-meta">${badge}<span class="arrow">›</span></div>
+        </div>`;
+    }).join('');
+  }
+
+  // Klik på et opgavekort (event delegation – robust mod specialtegn i titler)
+  document.getElementById('taskList').addEventListener('click', function(e) {
+    const card = e.target.closest('.task-card');
+    if (!card) return;
+    openTask(currentView[+card.dataset.i]);
+  });
+
+  /* ── Modal ── */
+  function openTask(task) {
+    currentTask = task;
+    document.getElementById('modalTaskName').textContent = task.name;
+    finishEditTitle();
+    document.getElementById('nameInput').value = '';
+    document.getElementById('completionDate').value = today();
+    renderHistory();
+    document.getElementById('taskOverlay').classList.add('active');
+    document.body.style.overflow = 'hidden';
+  }
+
+  /* ── Søgning ── */
+  function onSearch(value) {
+    searchQuery = value.trim();
+    renderTaskList();
+  }
+
+  /* ── Ny opgave ── */
+  function openNewTask() {
+    const input = document.getElementById('newTaskInput');
+    input.value = '';
+    document.getElementById('newTaskOverlay').classList.add('active');
+    document.body.style.overflow = 'hidden';
+    setTimeout(() => input.focus(), 50);
+  }
+
+  function closeNewTask() {
+    document.getElementById('newTaskOverlay').classList.remove('active');
+    document.body.style.overflow = '';
+  }
+
+  async function createTask() {
+    const name = document.getElementById('newTaskInput').value.trim();
+    if (!name) { alert('Skriv venligst en titel.'); return; }
+    if (tasks.some(t => t.name.toLowerCase() === name.toLowerCase())) {
+      alert('Der findes allerede en opgave med den titel.'); return;
+    }
+    try {
+      await apiCall('/tasks', { method: 'POST', body: JSON.stringify({ name }) });
+      await refresh();
+      closeNewTask();
+    } catch (err) { showError(err); }
+  }
+
+  document.getElementById('newTaskInput').addEventListener('keydown', function(e) {
+    if (e.key === 'Enter') createTask();
+  });
+
+  document.getElementById('newTaskOverlay').addEventListener('click', function(e) {
+    if (e.target === this) closeNewTask();
+  });
+
+  /* ── Redigér titel ── */
+  function startEditTitle() {
+    const input = document.getElementById('editTitleInput');
+    input.value = currentTask.name;
+    document.getElementById('titleDisplay').style.display = 'none';
+    document.getElementById('titleEdit').style.display = 'flex';
+    setTimeout(() => { input.focus(); input.select(); }, 30);
+  }
+
+  function finishEditTitle() {
+    document.getElementById('titleDisplay').style.display = 'flex';
+    document.getElementById('titleEdit').style.display = 'none';
+  }
+
+  async function saveTitleEdit() {
+    const newName = document.getElementById('editTitleInput').value.trim();
+    if (!newName) { alert('Titlen må ikke være tom.'); return; }
+    if (newName !== currentTask.name &&
+        tasks.some(t => t.name.toLowerCase() === newName.toLowerCase())) {
+      alert('Der findes allerede en opgave med den titel.');
+      return;
+    }
+    if (newName !== currentTask.name) {
+      try {
+        await apiCall('/tasks/' + currentTask._id, {
+          method: 'PATCH', body: JSON.stringify({ name: newName })
+        });
+        await refresh();
+        syncCurrentTask();
+        document.getElementById('modalTaskName').textContent = newName;
+      } catch (err) { showError(err); return; }
+    }
+    finishEditTitle();
+  }
+
+  document.getElementById('editTitleInput').addEventListener('keydown', function(e) {
+    if (e.key === 'Enter') saveTitleEdit();
+    if (e.key === 'Escape') finishEditTitle();
+  });
+
+  /* ── Slet opgave ── */
+  function askDeleteTask() {
+    if (!currentTask) return;
+    const n = (currentTask.completions || []).length;
+    document.getElementById('deleteTaskName').textContent = currentTask.name;
+    document.getElementById('deleteTaskCount').textContent =
+      n === 0 ? 'Ingen' : (n + ' udførelse' + (n > 1 ? 'r' : ''));
+    document.getElementById('deleteTaskOverlay').classList.add('active');
+  }
+
+  function cancelDeleteTask() {
+    document.getElementById('deleteTaskOverlay').classList.remove('active');
+  }
+
+  async function confirmDeleteTask() {
+    if (!currentTask) return;
+    try {
+      await apiCall('/tasks/' + currentTask._id, { method: 'DELETE' });
+      document.getElementById('deleteTaskOverlay').classList.remove('active');
+      closeModal();
+      await refresh();
+    } catch (err) { showError(err); }
+  }
+
+  function closeModal() {
+    document.getElementById('taskOverlay').classList.remove('active');
+    document.body.style.overflow = '';
+    currentTask = null;
+  }
+
+  document.getElementById('taskOverlay').addEventListener('click', function(e) {
+    if (e.target === this) closeModal();
+  });
+
+  /* ── Submit → confirm ── */
+  function submitCompletion() {
+    const person = document.getElementById('nameInput').value.trim();
+    const date   = document.getElementById('completionDate').value;
+
+    if (!person) {
+      alert('Indtast venligst dit navn.');
+      return;
+    }
+    if (!date) {
+      alert('Vælg venligst en dato.');
+      return;
+    }
+
+    pending = { taskId: currentTask._id, person, date };
+    document.getElementById('confirmTask').textContent   = currentTask.name;
+    document.getElementById('confirmPerson').textContent = person;
+    document.getElementById('confirmDate').textContent   = formatDate(date);
+    document.getElementById('confirmOverlay').classList.add('active');
+  }
+
+  function cancelConfirm() {
+    document.getElementById('confirmOverlay').classList.remove('active');
+    pending = null;
+  }
+
+  async function confirmCompletion() {
+    if (!pending) return;
+    try {
+      await apiCall('/tasks/' + pending.taskId + '/completions', {
+        method: 'POST',
+        body: JSON.stringify({ person: pending.person, date: pending.date })
+      });
+      await refresh();
+      syncCurrentTask();
+      renderHistory();
+      document.getElementById('confirmOverlay').classList.remove('active');
+      pending = null;
+      document.getElementById('nameInput').value = '';
+    } catch (err) { showError(err); }
+  }
+
+  /* ── History ── */
+  function renderHistory() {
+    const container = document.getElementById('historyContainer');
+    const entries = (currentTask && currentTask.completions ? currentTask.completions : [])
+      .slice()
+      .sort((a, b) => (a.date < b.date ? 1 : a.date > b.date ? -1 : (b.timestamp || 0) - (a.timestamp || 0)));
+
+    if (!entries.length) {
+      container.innerHTML = '<div class="history-empty">Ingen udførelser registreret endnu.</div>';
+      return;
+    }
+
+    container.innerHTML = `<div class="history-list">${
+      entries.map(e => `
+        <div class="history-item">
+          <div class="history-info">
+            <div class="history-person">${escHtml(e.person)}</div>
+            <div class="history-date">${formatDate(e.date)}</div>
+          </div>
+          <button class="btn btn-danger" onclick="askRemoveEntry('${e._id}')">Fjern</button>
+        </div>`).join('')
+    }</div>`;
+  }
+
+  function askRemoveEntry(completionId) {
+    if (!currentTask) return;
+    const entry = (currentTask.completions || []).find(c => c._id === completionId);
+    if (!entry) return;
+    pendingRemove = { taskId: currentTask._id, completionId };
+    document.getElementById('removeTask').textContent   = currentTask.name;
+    document.getElementById('removePerson').textContent = entry.person;
+    document.getElementById('removeDate').textContent   = formatDate(entry.date);
+    document.getElementById('removeOverlay').classList.add('active');
+  }
+
+  function cancelRemove() {
+    document.getElementById('removeOverlay').classList.remove('active');
+    pendingRemove = null;
+  }
+
+  async function confirmRemove() {
+    if (!pendingRemove) return;
+    try {
+      await apiCall('/tasks/' + pendingRemove.taskId + '/completions/' + pendingRemove.completionId,
+        { method: 'DELETE' });
+      await refresh();
+      syncCurrentTask();
+      renderHistory();
+      document.getElementById('removeOverlay').classList.remove('active');
+      pendingRemove = null;
+    } catch (err) { showError(err); }
+  }
+
+  /* ── Helpers ── */
+  function today() {
+    return new Date().toISOString().split('T')[0];
+  }
+
+  // Antal hele dage siden en dato (YYYY-MM-DD), målt fra midnat til midnat
+  function daysSince(dateStr) {
+    if (!dateStr) return Infinity;
+    const [y, m, d] = dateStr.split('-').map(Number);
+    const then = new Date(y, m - 1, d);
+    const now = new Date();
+    const today0 = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    return Math.floor((today0 - then) / 86400000);
+  }
+
+  function formatDate(d) {
+    if (!d) return '';
+    const [y, m, day] = d.split('-');
+    return `${day}/${m}/${y}`;
+  }
+
+  /* ── Init ── */
+  (async function init() {
+    const list = document.getElementById('taskList');
+    list.innerHTML = '<div class="history-empty">Henter opgaver…</div>';
+    try {
+      await refresh();
+    } catch (err) {
+      list.innerHTML = '<div class="history-empty" style="line-height:1.6;">' +
+        'Kunne ikke hente opgaver fra serveren.<br>' +
+        '<span style="font-size:12px;">' + escHtml(err.message) + '</span></div>';
+    }
+  })();
+</script>
+</body>
+</html>
